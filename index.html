@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bo-Mzi Chillz n Grillz • Order Online</title>
+  <link rel="stylesheet" href="style.css?v=10">
+</head>
+<body>
+
+  <!-- Top Brand Header -->
+  <header class="shop-header">
+    <div class="status-badge">
+      <span class="live-dot"></span>
+      <span>BO-MZI CHILLZ N GRILLZ • OPEN NOW</span>
+    </div>
+    <h1>BO-MZI CHILLZ N GRILLZ</h1>
+    <p>Kotas, Slap Chips, Russians, Magwinyas & Flame-Grilled Chicken</p>
+
+    <nav class="cat-tabs" id="cat-tabs">
+      <button type="button" class="tab active" data-cat="all">All Menu</button>
+      <button type="button" class="tab" data-cat="kotas">Kotas</button>
+      <button type="button" class="tab" data-cat="chips">Chips & Russians</button>
+      <button type="button" class="tab" data-cat="magwinyas">Magwinyas</button>
+      <button type="button" class="tab" data-cat="chicken">Chicken Grill</button>
+    </nav>
+  </header>
+
+  <!-- Menu Container -->
+  <main class="menu-container" id="menu-grid"></main>
+
+  <!-- Floating Bottom Cart Bar -->
+  <div class="cart-bar hidden" id="cart-bar" onclick="openCheckout()">
+    <div class="cart-left">
+      <span class="cart-count" id="cart-count">0</span>
+      <span>View Order & Checkout</span>
+    </div>
+    <strong id="cart-total">R0.00</strong>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div class="checkout-modal hidden" id="checkout-modal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2>BO-MZI ORDER SUMMARY</h2>
+        <button type="button" class="close-btn" onclick="closeCheckout()">✕</button>
+      </div>
+
+      <div class="order-items" id="order-items"></div>
+
+      <div class="delivery-toggle">
+        <button type="button" class="mode-btn active" id="btn-collect" onclick="setOrderType('Collection')">
+          🏃 Collection (Free)
+        </button>
+        <button type="button" class="mode-btn" id="btn-deliver" onclick="setOrderType('Delivery')">
+          🛵 Delivery (+R20)
+        </button>
+      </div>
+
+      <form id="checkout-form">
+        <input type="text" id="cust-name" placeholder="Your Full Name" required>
+        <input type="text" id="cust-address" class="hidden" placeholder="Delivery Address / Street / Landmark">
+        <input type="text" id="cust-notes" placeholder="Extra instructions (e.g. Extra atchar, mild spice)">
+
+        <div class="summary-box">
+          <div class="sum-row"><span>Items Subtotal</span><span id="sum-sub">R0.00</span></div>
+          <div class="sum-row"><span>Delivery Fee</span><span id="sum-fee">R0.00</span></div>
+          <div class="sum-row total"><strong>TOTAL TO PAY</strong><strong id="sum-total">R0.00</strong></div>
+        </div>
+
+        <button type="submit" class="wa-order-btn">
+          📲 SEND ORDER TO WHATSAPP
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js?v=10"></script>
+</body>
+</html>
+
+<style>
+@import url('https://googleapis.com');
+
+:root {
+  --bg: #0b0c10;
+  --card: #15171e;
+  --fire: #f97316;
+  --gold: #fbbf24;
+  --green: #22c55e;
+  --text: #f8fafc;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  padding-bottom: 95px;
+}
+
+/* Header */
+.shop-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(11, 12, 16, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 16px 16px 12px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #4ade80;
+  margin-bottom: 4px;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+}
+
+h1 {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--gold);
+}
+
+.shop-header p {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+/* Category Tabs */
+.cat-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-top: 14px;
+}
+
+.cat-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  background: var(--card);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--fire);
+  color: #fff;
+  border-color: var(--fire);
+}
+
+/* Menu Cards */
+.menu-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.menu-card {
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.item-img {
+  width: 78px;
+  height: 78px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #222530;
+  flex-shrink: 0;
+}
+
+.item-info h3 {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.item-info p {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+  line-height: 1.35;
+}
+
+/* Size Pills */
+.size-selector {
+  display: flex;
+  gap: 6px;
+}
+
+.size-pill {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  padding: 7px 6px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+
+.size-pill.active {
+  background: rgba(249, 115, 22, 0.2);
+  border-color: var(--fire);
+  color: #fff;
+}
+
+/* Price & Add Button Row */
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 10px;
+}
+
+.price {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qty-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.qty-btn.add {
+  background: var(--fire);
+  width: auto;
+  padding: 0 14px;
+  font-size: 12px;
+}
+
+.qty-num {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* Floating Cart Bar */
+.cart-bar {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  max-width: 468px;
+  margin: 0 auto;
+  z-index: 50;
+  background: var(--fire);
+  color: #fff;
+  padding: 15px 18px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  box-shadow: 0 12px 30px rgba(249, 115, 22, 0.4);
+  cursor: pointer;
+}
+
+.cart-bar.hidden {
+  display: none;
+}
+
+.cart-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cart-count {
+  background: #0b0c10;
+  color: #fff;
+  padding: 3px 9px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* Checkout Drawer */
+.checkout-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: flex-end;
+}
+
+.checkout-modal.hidden {
+  display: none;
+}
+
+.modal-sheet {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  background: #14161e;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 24px 24px 0 0;
+  padding: 20px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.modal-header h2 {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--gold);
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.order-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.delivery-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mode-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  padding: 10px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mode-btn.active {
+  background: rgba(249, 115, 22, 0.2);
+  border-color: var(--fire);
+  color: #fff;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+input {
+  width: 100%;
+  background: #0b0c10;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+input.hidden {
+  display: none;
+}
+
+.summary-box {
+  background: #0b0c10;
+  padding: 12px;
+  border-radius: 12px;
+  margin: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sum-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.sum-row.total {
+  color: #fff;
+  font-size: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 6px;
+}
+
+.wa-order-btn {
+  background: var(--green);
+  color: #041d0d;
+  border: none;
+  padding: 15px;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+</style>
+<script>
+// ==========================================
+// BO-MZI CHILLZ N GRILLZ CONFIG
+// ==========================================
+const SHOP_NAME = 'BO-MZI CHILLZ N GRILLZ';
+// Replace with your WhatsApp number: 27 + number without leading 0 (e.g. 27712345678)
+const SHOP_WHATSAPP = '27763634197';
+const DELIVERY_FEE = 20;
+
+const menuItems = [
+  {
+    id: 'kota-classic',
+    name: 'Bo-Mzi Special Kota',
+    cat: 'kotas',
+    desc: 'Fresh bread, slap chips, polony, Vienna, Russian, cheese & special atchar.',
+    img: 'https://unsplash.com',
+    sizes: [
+      { label: 'Small', price: 30 },
+      { label: 'Medium', price: 45 },
+      { label: 'Large', price: 60 }
+    ]
+  },
+  {
+    id: 'kota-boss',
+    name: 'Chillz Steak & Egg Kota',
+    cat: 'kotas',
+    desc: 'Loaded with grilled beef patty, fried egg, double cheese, bacon & chips.',
+    img: 'https://unsplash.com',
+    sizes: [
+      { label: 'Small', price: 45 },
+      { label: 'Medium', price: 60 },
+      { label: 'Large', price: 75 }
+    ]
+  },
+  {
+    id: 'slap-chips',
+    name: 'Golden Slap Chips',
+    cat: 'chips',
+    desc: 'Hand-cut crispy slap chips seasoned with spice, salt & vinegar.',
+    img: 'https://unsplash.com',
+    sizes: [
+      { label: 'Small', price: 20 },
+      { label: 'Medium', price: 35 },
+      { label: 'Large', price: 50 }
+    ]
+  },
+  {
+    id: 'russians-grill',
+    name: 'Fried & Grilled Russians',
+    cat: 'chips',
+    desc: 'Juicy smoked pork/beef Russians served hot with spicy tomato relish or chips.',
+    img: 'https://unsplash.com',
+    sizes: [
+      { label: 'Single Russian', price: 18 },
+      { label: 'Double + Small Chips', price: 45 },
+      { label: 'Cheese Russian Combo', price: 55 }
+    ]
+  },
+  {
+    id: 'magwinyas-fresh',
+    name: 'Golden Magwinyas (Vetkoek)',
+    cat: 'magwinyas',
+    desc: 'Fluffy, freshly fried golden magwinyas served plain or stuffed to order.',
+    img: 'https://unsplash.com',
+    sizes: [
+      { label: '3 Plain Magwinyas', price: 15 },
+      { label: 'Polony & Cheese', price: 25 },
+      { label: 'Savory Mince / Russian', price: 35 }
+    ]
+  },
+  {
+    id: 'flame-chicken',
+    name: 'Flame-Grilled Chicken & Chips',
+    cat: 'chicken',
+    desc: 'Juicy basted chicken (Lemon & Herb, Mild, or Hot Peri-Peri) with chips & roll.',
+    img: 'https://unsplash.com',
+    sizes: [
+      { label: 'Half Chicken', price: 75 },
+      { label: 'Full Chicken', price: 140 }
+    ]
+  }
+];
+
+let selectedSizeIdx = {
+  'kota-classic': 1,
+  'kota-boss': 1,
+  'slap-chips': 1,
+  'russians-grill': 1,
+  'magwinyas-fresh': 1,
+  'flame-chicken': 0
+};
+
+let cart = {};
+let activeCategory = 'all';
+let orderType = 'Collection';
+
+function renderMenu() {
+  const grid = document.getElementById('menu-grid');
+  const filtered = activeCategory === 'all'
+    ? menuItems
+    : menuItems.filter(item => item.cat === activeCategory);
+
+  grid.innerHTML = filtered.map(item => {
+    const sIdx = selectedSizeIdx[item.id] || 0;
+    const currentSize = item.sizes[sIdx];
+    const cartKey = item.id + '|' + sIdx;
+    const qty = cart[cartKey] || 0;
+
+    const sizeButtons = item.sizes.map((sz, idx) =>
+      '<button type="button" class="size-pill ' + (idx === sIdx ? 'active' : '') + '" onclick="chooseSize(\'' + item.id + '\', ' + idx + ')">' +
+      sz.label + ' • R' + sz.price +
+      '</button>'
+    ).join('');
+
+    return (
+      '<div class="menu-card">' +
+        '<div class="card-top">' +
+          '<img class="item-img" src="' + item.img + '" alt="' + item.name + '">' +
+          '<div class="item-info">' +
+            '<h3>' + item.name + '</h3>' +
+            '<p>' + item.desc + '</p>' +
+          '</div>' +
+        '</div>' +
+        '<div class="size-selector">' + sizeButtons + '</div>' +
+        '<div class="card-bottom">' +
+          '<span class="price">R' + currentSize.price.toFixed(2) + '</span>' +
+          '<div class="qty-controls">' +
+            (qty > 0 ? '<button type="button" class="qty-btn" onclick="updateCart(\'' + cartKey + '\', -1)">−</button>' : '') +
+            (qty > 0 ? '<span class="qty-num">' + qty + '</span>' : '') +
+            '<button type="button" class="qty-btn add" onclick="updateCart(\'' + cartKey + '\', 1)">' +
+              (qty > 0 ? '+' : '+ ADD TO ORDER') +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+}
+
+function chooseSize(itemId, idx) {
+  selectedSizeIdx[itemId] = idx;
+  renderMenu();
+}
+
+function updateCart(cartKey, change) {
+  cart[cartKey] = (cart[cartKey] || 0) + change;
+  if (cart[cartKey] <= 0) delete cart[cartKey];
+  renderMenu();
+  updateCartBar();
+}
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCategory = btn.dataset.cat;
+    renderMenu();
+  });
+});
+
+function getSubtotal() {
+  return Object.entries(cart).reduce((sum, [key, qty]) => {
+    const parts = key.split('|');
+    const itemId = parts[0];
+    const sIdx = Number(parts[1]);
+    const item = menuItems.find(m => m.id === itemId);
+    const price = item ? item.sizes[sIdx].price : 0;
+    return sum + price * qty;
+  }, 0);
+}
+
+function updateCartBar() {
+  const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
+  const sub = getSubtotal();
+  const bar = document.getElementById('cart-bar');
+
+  if (totalItems === 0) {
+    bar.classList.add('hidden');
+    closeCheckout();
+    return;
+  }
+
+  bar.classList.remove('hidden');
+  document.getElementById('cart-count').innerText = totalItems;
+  document.getElementById('cart-total').innerText = 'R' + sub.toFixed(2);
+}
+
+function openCheckout() {
+  document.getElementById('checkout-modal').classList.remove('hidden');
+  renderCheckout();
+}
+
+function closeCheckout() {
+  document.getElementById('checkout-modal').classList.add('hidden');
+}
+
+function setOrderType(type) {
+  orderType = type;
+  document.getElementById('btn-collect').classList.toggle('active', type === 'Collection');
+  document.getElementById('btn-deliver').classList.toggle('active', type === 'Delivery');
+
+  const addr = document.getElementById('cust-address');
+  if (type === 'Delivery') {
+    addr.classList.remove('hidden');
+    addr.required = true;
+  } else {
+    addr.classList.add('hidden');
+    addr.required = false;
+  }
+  renderCheckout();
+}
+
+function renderCheckout() {
+  const list = document.getElementById('order-items');
+  list.innerHTML = Object.entries(cart).map(([key, qty]) => {
+    const parts = key.split('|');
+    const itemId = parts[0];
+    const sIdx = Number(parts[1]);
+    const item = menuItems.find(m => m.id === itemId);
+    const sizeObj = item.sizes[sIdx];
+    return (
+      '<div class="order-line">' +
+        '<span>' + qty + 'x ' + item.name + ' (' + sizeObj.label + ')</span>' +
+        '<strong>R' + (sizeObj.price * qty).toFixed(2) + '</strong>' +
+      '</div>'
+    );
+  }).join('');
+
+  const sub = getSubtotal();
+  const fee = orderType === 'Delivery' ? DELIVERY_FEE : 0;
+  document.getElementById('sum-sub').innerText = 'R' + sub.toFixed(2);
+  document.getElementById('sum-fee').innerText = 'R' + fee.toFixed(2);
+  document.getElementById('sum-total').innerText = 'R' + (sub + fee).toFixed(2);
+}
+
+document.getElementById('checkout-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById('cust-name').value.trim();
+  const address = document.getElementById('cust-address').value.trim();
+  const notes = document.getElementById('cust-notes').value.trim();
+
+  const lines = Object.entries(cart).map(([key, qty]) => {
+    const parts = key.split('|');
+    const itemId = parts[0];
+    const sIdx = Number(parts[1]);
+    const item = menuItems.find(m => m.id === itemId);
+    const sizeObj = item.sizes[sIdx];
+    return '• ' + qty + 'x ' + item.name + ' [' + sizeObj.label + '] - R' + (sizeObj.price * qty).toFixed(2);
+  }).join('\n');
+
+  const sub = getSubtotal();
+  const fee = orderType === 'Delivery' ? DELIVERY_FEE : 0;
+  const total = sub + fee;
+
+  let text = '*NEW ORDER: ' + SHOP_NAME + '*\n';
+  text += '------------------------\n';
+  text += lines + '\n';
+  text += '------------------------\n';
+  text += '*Type:* ' + orderType + '\n';
+  if (orderType === 'Delivery') text += '*Address:* ' + address + '\n';
+  if (notes) text += '*Notes:* ' + notes + '\n';
+  text += '*Customer:* ' + name + '\n';
+  text += '*TOTAL:* R' + total.toFixed(2);
+
+  const cleanNumber = SHOP_WHATSAPP.replace(/\D/g, '');
+  const waUrl = 'https://whatsapp.com' + cleanNumber + '&text=' + encodeURIComponent(text);
+
+  window.location.href = waUrl;
+});
+
+renderMenu();
+
+</script>
